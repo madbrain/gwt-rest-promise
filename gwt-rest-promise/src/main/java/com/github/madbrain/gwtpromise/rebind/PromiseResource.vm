@@ -1,0 +1,31 @@
+package $package;
+
+import javax.inject.Inject;
+
+#foreach ($import in $imports)
+import $import;
+#end
+
+public class $impl implements ResourcePromiseFactory<$resourcePromiseType> {
+    private final ResourceDelegate<$resourceType> resourceDelegate;
+
+    @Inject
+    public ${impl}(ResourceDelegate<$resourceType> resourceDelegate) {
+        this.resourceDelegate = resourceDelegate;
+    }
+
+    @Override
+    public $resourcePromiseType create() {
+
+        return new $resourcePromiseType() {
+#foreach ($method in $methods)
+            @Override
+            public Promise<${method.returnType}> ${method.name}(#generateMethodSignature($method.parameters)) {
+                AsyncCallPromise<${method.returnType}> promise = new AsyncCallPromise<>();
+                resourceDelegate.withCallback(promise).${method.name}(#generateCallSignature($method.parameters));
+                return promise;
+            }
+#end
+        };
+    }
+}
